@@ -21,22 +21,6 @@ export type Watch = {
   salePrice: bigint;
 };
 
-export function parseWatch(raw: readonly unknown[]): Watch {
-  return {
-    id: raw[0] as bigint,
-    brand: raw[0] as string,
-    model: raw[2] as string,
-    year: raw[3] as bigint,
-    description: raw[4] as string,
-    imageUrl: raw[5] as string,
-    purchasePrice: raw[6] as bigint,
-    totalShares: raw[7] as bigint,
-    sharesSold: raw[8] as bigint,
-    sold: raw[9] as boolean,
-    salePrice: raw[10] as bigint,
-  };
-}
-
 export function parseWatchResult(result: unknown): Watch {
   if (Array.isArray(result)) {
     return {
