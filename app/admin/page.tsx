@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 import {
   RegisterWatchForm,
   SellWatchForm,
@@ -9,7 +9,7 @@ import {
 import { useIsOwner } from "@/hooks/useWatchVault";
 
 export default function AdminPage() {
-  const { isConnected, address } = useAccount();
+  const { isConnected, address } = useConnection();
   const isOwner = useIsOwner();
 
   if (!isConnected) {

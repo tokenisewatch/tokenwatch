@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 import { formatEth } from "@/lib/eth";
 import { useBuyShares, useSharePrice } from "@/hooks/useWatchVault";
 
@@ -11,7 +11,7 @@ type BuySharesFormProps = {
 };
 
 export function BuySharesForm({ watchId, sold }: BuySharesFormProps) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useConnection();
   const { data: sharePrice } = useSharePrice(watchId);
   const { buyShares, isPending, isConfirming, isSuccess, error } =
     useBuyShares(watchId);

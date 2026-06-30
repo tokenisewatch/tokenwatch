@@ -1,11 +1,11 @@
 "use client";
 
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 import { PortfolioRow } from "@/components/PortfolioRow";
 import { useAllWatches } from "@/hooks/useWatchVault";
 
 export default function PortfolioPage() {
-  const { isConnected } = useAccount();
+  const { isConnected } = useConnection();
   const { data: watches, isLoading } = useAllWatches();
 
   if (!isConnected) {

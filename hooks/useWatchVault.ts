@@ -6,7 +6,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useWatchContractEvent,
-  useAccount,
+  useConnection,
 } from "wagmi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { readContract } from "wagmi/actions";
@@ -121,7 +121,7 @@ export function useSharePrice(watchId: bigint) {
 }
 
 export function useMyShares(watchId: bigint) {
-  const { address } = useAccount();
+  const { address } = useConnection();
   return useReadContract({
     address: WATCH_VAULT_ADDRESS,
     abi: WATCH_VAULT_ABI,
@@ -132,7 +132,7 @@ export function useMyShares(watchId: bigint) {
 }
 
 export function useClaimable(watchId: bigint) {
-  const { address } = useAccount();
+  const { address } = useConnection();
   return useReadContract({
     address: WATCH_VAULT_ADDRESS,
     abi: WATCH_VAULT_ABI,
@@ -151,7 +151,7 @@ export function useContractOwner() {
 }
 
 export function useIsOwner() {
-  const { address } = useAccount();
+  const { address } = useConnection();
   const { data: owner } = useContractOwner();
   return address && owner
     ? address.toLowerCase() === (owner as string).toLowerCase()

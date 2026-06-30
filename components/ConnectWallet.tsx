@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  useAccount,
+  useConnection,
   useConnect,
   useDisconnect,
+  useConnectors,
   useChainId,
   useSwitchChain,
 } from "wagmi";
@@ -12,20 +13,58 @@ import { sepolia } from "wagmi/chains";
 import { shortenAddress } from "@/lib/eth";
 
 export function ConnectWallet() {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
-  const { disconnect } = useDisconnect();
+  const [mounted, setMounted] = useState(false);
+  const { address, isConnected } = useConnection();
+  const connectors = useConnectors();
+  const {
+    mutateAsync: connect,
+    isPending,
+    error: connectError,
+    reset,
+  } = useConnect();
+  const { mutate: disconnect, isPending: isDisconnecting } = useDisconnect();
   const chainId = useChainId();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
 
-  const metaMask = connectors[0];
   const wrongNetwork = isConnected && chainId !== sepolia.id;
 
   useEffect(() => {
-    if (wrongNetwork && switchChain) {
-      switchChain({ chainId: sepolia.id });
+    setMounted(true);
+  }, []);
+
+  const metaMaskConnector =
+    connectors.find((c) => c.id === "metaMaskSDK") ??
+    connectors.find((c) => c.id === "io.metamask") ??
+    connectors.find((c) => c.name.toLowerCase().includes("metamask")) ??
+    connectors[0];
+
+  const handleConnect = async () => {
+    reset();
+    if (!metaMaskConnector) {
+      window.open("https://metamask.io/download/", "_blank", "noopener,noreferrer");
+      return;
     }
-  }, [wrongNetwork, switchChain]);
+    try {
+      await connect({
+        connector: metaMaskConnector,
+        chainId: sepolia.id,
+      });
+    } catch {
+      // Error surfaced via connectError
+    }
+  };
+
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="rounded-full bg-amber-600/50 px-4 py-2 text-sm font-medium text-white"
+      >
+        Connect MetaMask
+      </button>
+    );
+  }
 
   if (isConnected && address) {
     return (
@@ -46,6 +85,7 @@ export function ConnectWallet() {
         <button
           type="button"
           onClick={() => disconnect()}
+          disabled={isDisconnecting}
           className="rounded-full border border-zinc-700 px-4 py-2 text-sm text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800"
         >
           Disconnect
@@ -55,13 +95,22 @@ export function ConnectWallet() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => metaMask && connect({ connector: metaMask })}
-      disabled={isPending || !metaMask}
-      className="rounded-full bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-500 disabled:opacity-50"
-    >
-      {isPending ? "Connecting..." : "Connect MetaMask"}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleConnect}
+        disabled={isPending}
+        className="rounded-full bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-500 disabled:opacity-50"
+      >
+        {isPending ? "Connecting..." : "Connect MetaMask"}
+      </button>
+      {connectError && (
+        <p className="max-w-xs text-right text-xs text-red-400">
+          {connectError.message.includes("User rejected")
+            ? "Connection rejected in MetaMask."
+            : connectError.message.slice(0, 100)}
+        </p>
+      )}
+    </div>
   );
 }
