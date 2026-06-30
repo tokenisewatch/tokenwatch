@@ -56,11 +56,7 @@ export function ConnectWallet() {
 
   if (!mounted) {
     return (
-      <button
-        type="button"
-        disabled
-        className="rounded-full bg-amber-600/50 px-4 py-2 text-sm font-medium text-white"
-      >
+      <button type="button" disabled className="btn-primary px-5 py-2.5 text-sm">
         Connect MetaMask
       </button>
     );
@@ -68,27 +64,27 @@ export function ConnectWallet() {
 
   if (isConnected && address) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {wrongNetwork && (
           <button
             type="button"
             onClick={() => switchChain?.({ chainId: sepolia.id })}
             disabled={isSwitching}
-            className="rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-500/20"
+            className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-300"
           >
-            Switch to Sepolia
+            Switch network
           </button>
         )}
-        <span className="hidden text-sm text-zinc-400 sm:inline">
-          {shortenAddress(address)}
-        </span>
         <button
           type="button"
           onClick={() => disconnect()}
           disabled={isDisconnecting}
-          className="rounded-full border border-zinc-700 px-4 py-2 text-sm text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800"
+          className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 py-1.5 pl-1.5 pr-3 transition hover:border-zinc-600"
         >
-          Disconnect
+          <span className="avatar-gradient flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white">
+            {address.slice(2, 4).toUpperCase()}
+          </span>
+          <span className="text-sm text-zinc-300">{shortenAddress(address)}</span>
         </button>
       </div>
     );
@@ -100,15 +96,15 @@ export function ConnectWallet() {
         type="button"
         onClick={handleConnect}
         disabled={isPending}
-        className="rounded-full bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-500 disabled:opacity-50"
+        className="btn-primary px-5 py-2.5 text-sm shadow-lg shadow-orange-900/20"
       >
         {isPending ? "Connecting..." : "Connect MetaMask"}
       </button>
       {connectError && (
-        <p className="max-w-xs text-right text-xs text-red-400">
+        <p className="max-w-[200px] text-right text-xs text-red-400">
           {connectError.message.includes("User rejected")
-            ? "Connection rejected in MetaMask."
-            : connectError.message.slice(0, 100)}
+            ? "Connection rejected."
+            : connectError.message.slice(0, 80)}
         </p>
       )}
     </div>

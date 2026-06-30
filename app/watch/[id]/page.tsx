@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { BuySharesForm } from "@/components/BuySharesForm";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatEth } from "@/lib/eth";
 import { watchStatus } from "@/lib/contract";
 import {
@@ -23,15 +25,18 @@ export default function WatchDetailPage({
   const isOwner = useIsOwner();
 
   if (isLoading) {
-    return <p className="text-zinc-500">Loading watch...</p>;
+    return <p className="py-12 text-center text-zinc-500">Loading watch...</p>;
   }
 
   if (error || !watch) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
+      <div className="card p-12 text-center">
         <p className="text-zinc-400">Watch not found.</p>
-        <Link href="/" className="mt-4 inline-block text-amber-500 hover:underline">
-          Back to watches
+        <Link
+          href="/"
+          className="mt-4 inline-block text-orange-400 hover:underline"
+        >
+          ← Back to watches
         </Link>
       </div>
     );
@@ -39,11 +44,24 @@ export default function WatchDetailPage({
 
   const status = watchStatus(watch);
   const remainingShares = (remaining as bigint | undefined) ?? 0n;
+  const sharePrice =
+    watch.totalShares > 0n ? watch.purchasePrice / watch.totalShares : 0n;
+  const soldPct =
+    watch.totalShares > 0n
+      ? Number((watch.sharesSold * 100n) / watch.totalShares)
+      : 0;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      <div>
-        <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+    <div>
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-300"
+      >
+        ← Back to watches
+      </Link>
+
+      <div className="grid gap-8 lg:grid-cols-2">
+        <div className="card overflow-hidden">
           {watch.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -52,69 +70,82 @@ export default function WatchDetailPage({
               className="aspect-[4/3] w-full object-cover"
             />
           ) : (
-            <div className="flex aspect-[4/3] items-center justify-center bg-zinc-800 text-zinc-600">
+            <div className="flex aspect-[4/3] items-center justify-center bg-zinc-900 text-zinc-600">
               No image
             </div>
           )}
         </div>
-      </div>
 
-      <div>
-        <div className="mb-2 flex items-center gap-3">
-          <span
-            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-              status === "Active"
-                ? "bg-emerald-500/20 text-emerald-300"
-                : "bg-zinc-700 text-zinc-300"
-            }`}
-          >
-            {status}
-          </span>
-          <span className="text-sm text-zinc-500">{watch.year.toString()}</span>
-        </div>
-        <h1 className="text-3xl font-semibold text-zinc-100">
-          {watch.brand} {watch.model}
-        </h1>
-        <p className="mt-4 text-zinc-400">{watch.description}</p>
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <StatusBadge status={status} />
+            <span className="text-sm text-zinc-500">{watch.year.toString()}</span>
+          </div>
+          <h1 className="text-3xl font-bold text-zinc-100">
+            {watch.brand} {watch.model}
+          </h1>
+          <p className="mt-4 leading-relaxed text-zinc-400">{watch.description}</p>
 
-        <dl className="mt-6 grid grid-cols-2 gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <div>
-            <dt className="text-xs text-zinc-500">Purchase Price</dt>
-            <dd className="text-lg font-medium text-amber-500">
-              {formatEth(watch.purchasePrice)} ETH
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-zinc-500">Total Shares</dt>
-            <dd className="text-lg text-zinc-200">
-              {watch.totalShares.toString()}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-zinc-500">Remaining Shares</dt>
-            <dd className="text-lg text-zinc-200">{remainingShares.toString()}</dd>
-          </div>
-          {watch.sold && (
+          <div className="card mt-6 grid grid-cols-2 gap-4 p-5">
             <div>
-              <dt className="text-xs text-zinc-500">Sale Price</dt>
-              <dd className="text-lg text-zinc-200">
-                {formatEth(watch.salePrice)} ETH
-              </dd>
+              <p className="text-xs text-zinc-500">Total Value</p>
+              <p className="mt-1 text-xl font-semibold text-zinc-100">
+                {formatEth(watch.purchasePrice)} ETH
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500">Price per Share</p>
+              <p className="mt-1 text-xl font-semibold text-zinc-100">
+                {formatEth(sharePrice)} ETH
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500">Total Shares</p>
+              <p className="mt-1 text-lg text-zinc-200">
+                {watch.totalShares.toString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500">Remaining</p>
+              <p className="mt-1 text-lg text-zinc-200">
+                {remainingShares.toString()}
+              </p>
+            </div>
+            {watch.sold && (
+              <div className="col-span-2">
+                <p className="text-xs text-zinc-500">Final Sale Price</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-400">
+                  {formatEth(watch.salePrice)} ETH
+                </p>
+              </div>
+            )}
+          </div>
+
+          {!watch.sold && (
+            <div className="mt-4">
+              <div className="flex justify-between text-xs text-zinc-500">
+                <span>Shares Sold</span>
+                <span>
+                  {watch.sharesSold.toString()} / {watch.totalShares.toString()}{" "}
+                  ({soldPct}%)
+                </span>
+              </div>
+              <ProgressBar value={soldPct} className="mt-2" />
             </div>
           )}
-        </dl>
 
-        {isOwner && (
-          <p className="mt-4 text-sm text-zinc-500">
-            Admin view —{" "}
-            <Link href="/admin" className="text-amber-500 hover:underline">
-              manage watches
-            </Link>
-          </p>
-        )}
+          {isOwner && (
+            <p className="mt-4 text-sm text-zinc-500">
+              Admin —{" "}
+              <Link href="/admin" className="text-orange-400 hover:underline">
+                manage watches
+              </Link>
+            </p>
+          )}
 
-        <div className="mt-6">
-          <BuySharesForm watchId={watchId} sold={watch.sold} />
+          <div className="mt-6">
+            <BuySharesForm watchId={watchId} sold={watch.sold} />
+          </div>
         </div>
       </div>
     </div>

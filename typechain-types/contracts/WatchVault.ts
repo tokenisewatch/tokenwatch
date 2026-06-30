@@ -68,21 +68,34 @@ export declare namespace WatchVault {
 export interface WatchVaultInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "approve"
+      | "balanceOf"
       | "buyShares"
       | "claimRevenue"
       | "claimableAmount"
       | "claimed"
+      | "getApproved"
       | "getWatch"
       | "getWatchCount"
+      | "isApprovedForAll"
+      | "name"
       | "nextWatchId"
       | "owner"
+      | "ownerOf"
       | "platformRevenueWithdrawn"
       | "registerWatch"
       | "remainingShares"
       | "renounceOwnership"
+      | "safeTransferFrom(address,address,uint256)"
+      | "safeTransferFrom(address,address,uint256,bytes)"
       | "sellWatch"
+      | "setApprovalForAll"
       | "sharePrice"
       | "shares"
+      | "supportsInterface"
+      | "symbol"
+      | "tokenURI"
+      | "transferFrom"
       | "transferOwnership"
       | "watches"
       | "withdrawPlatformRevenue"
@@ -90,14 +103,27 @@ export interface WatchVaultInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "Approval"
+      | "ApprovalForAll"
+      | "BatchMetadataUpdate"
+      | "MetadataUpdate"
       | "OwnershipTransferred"
       | "PlatformRevenueWithdrawn"
       | "RevenueClaimed"
       | "SharesPurchased"
+      | "Transfer"
       | "WatchRegistered"
       | "WatchSold"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "approve",
+    values: [AddressLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOf",
+    values: [AddressLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "buyShares",
     values: [BigNumberish, BigNumberish]
@@ -115,6 +141,10 @@ export interface WatchVaultInterface extends Interface {
     values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getApproved",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getWatch",
     values: [BigNumberish]
   ): string;
@@ -123,10 +153,19 @@ export interface WatchVaultInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "isApprovedForAll",
+    values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(
     functionFragment: "nextWatchId",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "ownerOf",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "platformRevenueWithdrawn",
     values: [BigNumberish]
@@ -137,6 +176,7 @@ export interface WatchVaultInterface extends Interface {
       string,
       string,
       BigNumberish,
+      string,
       string,
       string,
       BigNumberish,
@@ -152,8 +192,20 @@ export interface WatchVaultInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "safeTransferFrom(address,address,uint256)",
+    values: [AddressLike, AddressLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "sellWatch",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setApprovalForAll",
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "sharePrice",
@@ -162,6 +214,19 @@ export interface WatchVaultInterface extends Interface {
   encodeFunctionData(
     functionFragment: "shares",
     values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "tokenURI",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferFrom",
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -176,6 +241,8 @@ export interface WatchVaultInterface extends Interface {
     values: [BigNumberish]
   ): string;
 
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "buyShares", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "claimRevenue",
@@ -186,16 +253,26 @@ export interface WatchVaultInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "claimed", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getApproved",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getWatch", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getWatchCount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "isApprovedForAll",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "nextWatchId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "platformRevenueWithdrawn",
     data: BytesLike
@@ -212,9 +289,31 @@ export interface WatchVaultInterface extends Interface {
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "safeTransferFrom(address,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "sellWatch", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setApprovalForAll",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "sharePrice", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "shares", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferFrom",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
@@ -224,6 +323,74 @@ export interface WatchVaultInterface extends Interface {
     functionFragment: "withdrawPlatformRevenue",
     data: BytesLike
   ): Result;
+}
+
+export namespace ApprovalEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    approved: AddressLike,
+    tokenId: BigNumberish
+  ];
+  export type OutputTuple = [owner: string, approved: string, tokenId: bigint];
+  export interface OutputObject {
+    owner: string;
+    approved: string;
+    tokenId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ApprovalForAllEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    operator: AddressLike,
+    approved: boolean
+  ];
+  export type OutputTuple = [
+    owner: string,
+    operator: string,
+    approved: boolean
+  ];
+  export interface OutputObject {
+    owner: string;
+    operator: string;
+    approved: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace BatchMetadataUpdateEvent {
+  export type InputTuple = [
+    _fromTokenId: BigNumberish,
+    _toTokenId: BigNumberish
+  ];
+  export type OutputTuple = [_fromTokenId: bigint, _toTokenId: bigint];
+  export interface OutputObject {
+    _fromTokenId: bigint;
+    _toTokenId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace MetadataUpdateEvent {
+  export type InputTuple = [_tokenId: BigNumberish];
+  export type OutputTuple = [_tokenId: bigint];
+  export interface OutputObject {
+    _tokenId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace OwnershipTransferredEvent {
@@ -295,20 +462,40 @@ export namespace SharesPurchasedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace TransferEvent {
+  export type InputTuple = [
+    from: AddressLike,
+    to: AddressLike,
+    tokenId: BigNumberish
+  ];
+  export type OutputTuple = [from: string, to: string, tokenId: bigint];
+  export interface OutputObject {
+    from: string;
+    to: string;
+    tokenId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace WatchRegisteredEvent {
   export type InputTuple = [
     watchId: BigNumberish,
     brand: string,
     model: string,
     purchasePrice: BigNumberish,
-    totalShares: BigNumberish
+    totalShares: BigNumberish,
+    tokenURI: string
   ];
   export type OutputTuple = [
     watchId: bigint,
     brand: string,
     model: string,
     purchasePrice: bigint,
-    totalShares: bigint
+    totalShares: bigint,
+    tokenURI: string
   ];
   export interface OutputObject {
     watchId: bigint;
@@ -316,6 +503,7 @@ export namespace WatchRegisteredEvent {
     model: string;
     purchasePrice: bigint;
     totalShares: bigint;
+    tokenURI: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -379,6 +567,14 @@ export interface WatchVault extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  approve: TypedContractMethod<
+    [to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+
   buyShares: TypedContractMethod<
     [watchId: BigNumberish, amount: BigNumberish],
     [void],
@@ -403,6 +599,8 @@ export interface WatchVault extends BaseContract {
     "view"
   >;
 
+  getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+
   getWatch: TypedContractMethod<
     [watchId: BigNumberish],
     [WatchVault.WatchStructOutput],
@@ -411,9 +609,19 @@ export interface WatchVault extends BaseContract {
 
   getWatchCount: TypedContractMethod<[], [bigint], "view">;
 
+  isApprovedForAll: TypedContractMethod<
+    [owner: AddressLike, operator: AddressLike],
+    [boolean],
+    "view"
+  >;
+
+  name: TypedContractMethod<[], [string], "view">;
+
   nextWatchId: TypedContractMethod<[], [bigint], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
+
+  ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
   platformRevenueWithdrawn: TypedContractMethod<
     [arg0: BigNumberish],
@@ -428,6 +636,7 @@ export interface WatchVault extends BaseContract {
       year: BigNumberish,
       description: string,
       imageUrl: string,
+      metadataUri: string,
       purchasePrice: BigNumberish,
       totalShares: BigNumberish
     ],
@@ -443,7 +652,30 @@ export interface WatchVault extends BaseContract {
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
+  "safeTransferFrom(address,address,uint256)": TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  "safeTransferFrom(address,address,uint256,bytes)": TypedContractMethod<
+    [
+      from: AddressLike,
+      to: AddressLike,
+      tokenId: BigNumberish,
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   sellWatch: TypedContractMethod<[watchId: BigNumberish], [void], "payable">;
+
+  setApprovalForAll: TypedContractMethod<
+    [operator: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
 
   sharePrice: TypedContractMethod<[watchId: BigNumberish], [bigint], "view">;
 
@@ -451,6 +683,22 @@ export interface WatchVault extends BaseContract {
     [arg0: BigNumberish, arg1: AddressLike],
     [bigint],
     "view"
+  >;
+
+  supportsInterface: TypedContractMethod<
+    [interfaceId: BytesLike],
+    [boolean],
+    "view"
+  >;
+
+  symbol: TypedContractMethod<[], [string], "view">;
+
+  tokenURI: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+
+  transferFrom: TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
   >;
 
   transferOwnership: TypedContractMethod<
@@ -502,6 +750,16 @@ export interface WatchVault extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "approve"
+  ): TypedContractMethod<
+    [to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "balanceOf"
+  ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+  getFunction(
     nameOrSignature: "buyShares"
   ): TypedContractMethod<
     [watchId: BigNumberish, amount: BigNumberish],
@@ -526,6 +784,9 @@ export interface WatchVault extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getApproved"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+  getFunction(
     nameOrSignature: "getWatch"
   ): TypedContractMethod<
     [watchId: BigNumberish],
@@ -536,11 +797,24 @@ export interface WatchVault extends BaseContract {
     nameOrSignature: "getWatchCount"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "isApprovedForAll"
+  ): TypedContractMethod<
+    [owner: AddressLike, operator: AddressLike],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "name"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "nextWatchId"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "ownerOf"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
   getFunction(
     nameOrSignature: "platformRevenueWithdrawn"
   ): TypedContractMethod<[arg0: BigNumberish], [boolean], "view">;
@@ -553,6 +827,7 @@ export interface WatchVault extends BaseContract {
       year: BigNumberish,
       description: string,
       imageUrl: string,
+      metadataUri: string,
       purchasePrice: BigNumberish,
       totalShares: BigNumberish
     ],
@@ -566,8 +841,34 @@ export interface WatchVault extends BaseContract {
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "safeTransferFrom(address,address,uint256)"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "safeTransferFrom(address,address,uint256,bytes)"
+  ): TypedContractMethod<
+    [
+      from: AddressLike,
+      to: AddressLike,
+      tokenId: BigNumberish,
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "sellWatch"
   ): TypedContractMethod<[watchId: BigNumberish], [void], "payable">;
+  getFunction(
+    nameOrSignature: "setApprovalForAll"
+  ): TypedContractMethod<
+    [operator: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "sharePrice"
   ): TypedContractMethod<[watchId: BigNumberish], [bigint], "view">;
@@ -577,6 +878,22 @@ export interface WatchVault extends BaseContract {
     [arg0: BigNumberish, arg1: AddressLike],
     [bigint],
     "view"
+  >;
+  getFunction(
+    nameOrSignature: "supportsInterface"
+  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "symbol"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "tokenURI"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "transferFrom"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
   >;
   getFunction(
     nameOrSignature: "transferOwnership"
@@ -619,6 +936,34 @@ export interface WatchVault extends BaseContract {
   ): TypedContractMethod<[watchId: BigNumberish], [void], "nonpayable">;
 
   getEvent(
+    key: "Approval"
+  ): TypedContractEvent<
+    ApprovalEvent.InputTuple,
+    ApprovalEvent.OutputTuple,
+    ApprovalEvent.OutputObject
+  >;
+  getEvent(
+    key: "ApprovalForAll"
+  ): TypedContractEvent<
+    ApprovalForAllEvent.InputTuple,
+    ApprovalForAllEvent.OutputTuple,
+    ApprovalForAllEvent.OutputObject
+  >;
+  getEvent(
+    key: "BatchMetadataUpdate"
+  ): TypedContractEvent<
+    BatchMetadataUpdateEvent.InputTuple,
+    BatchMetadataUpdateEvent.OutputTuple,
+    BatchMetadataUpdateEvent.OutputObject
+  >;
+  getEvent(
+    key: "MetadataUpdate"
+  ): TypedContractEvent<
+    MetadataUpdateEvent.InputTuple,
+    MetadataUpdateEvent.OutputTuple,
+    MetadataUpdateEvent.OutputObject
+  >;
+  getEvent(
     key: "OwnershipTransferred"
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
@@ -647,6 +992,13 @@ export interface WatchVault extends BaseContract {
     SharesPurchasedEvent.OutputObject
   >;
   getEvent(
+    key: "Transfer"
+  ): TypedContractEvent<
+    TransferEvent.InputTuple,
+    TransferEvent.OutputTuple,
+    TransferEvent.OutputObject
+  >;
+  getEvent(
     key: "WatchRegistered"
   ): TypedContractEvent<
     WatchRegisteredEvent.InputTuple,
@@ -662,6 +1014,50 @@ export interface WatchVault extends BaseContract {
   >;
 
   filters: {
+    "Approval(address,address,uint256)": TypedContractEvent<
+      ApprovalEvent.InputTuple,
+      ApprovalEvent.OutputTuple,
+      ApprovalEvent.OutputObject
+    >;
+    Approval: TypedContractEvent<
+      ApprovalEvent.InputTuple,
+      ApprovalEvent.OutputTuple,
+      ApprovalEvent.OutputObject
+    >;
+
+    "ApprovalForAll(address,address,bool)": TypedContractEvent<
+      ApprovalForAllEvent.InputTuple,
+      ApprovalForAllEvent.OutputTuple,
+      ApprovalForAllEvent.OutputObject
+    >;
+    ApprovalForAll: TypedContractEvent<
+      ApprovalForAllEvent.InputTuple,
+      ApprovalForAllEvent.OutputTuple,
+      ApprovalForAllEvent.OutputObject
+    >;
+
+    "BatchMetadataUpdate(uint256,uint256)": TypedContractEvent<
+      BatchMetadataUpdateEvent.InputTuple,
+      BatchMetadataUpdateEvent.OutputTuple,
+      BatchMetadataUpdateEvent.OutputObject
+    >;
+    BatchMetadataUpdate: TypedContractEvent<
+      BatchMetadataUpdateEvent.InputTuple,
+      BatchMetadataUpdateEvent.OutputTuple,
+      BatchMetadataUpdateEvent.OutputObject
+    >;
+
+    "MetadataUpdate(uint256)": TypedContractEvent<
+      MetadataUpdateEvent.InputTuple,
+      MetadataUpdateEvent.OutputTuple,
+      MetadataUpdateEvent.OutputObject
+    >;
+    MetadataUpdate: TypedContractEvent<
+      MetadataUpdateEvent.InputTuple,
+      MetadataUpdateEvent.OutputTuple,
+      MetadataUpdateEvent.OutputObject
+    >;
+
     "OwnershipTransferred(address,address)": TypedContractEvent<
       OwnershipTransferredEvent.InputTuple,
       OwnershipTransferredEvent.OutputTuple,
@@ -706,7 +1102,18 @@ export interface WatchVault extends BaseContract {
       SharesPurchasedEvent.OutputObject
     >;
 
-    "WatchRegistered(uint256,string,string,uint256,uint256)": TypedContractEvent<
+    "Transfer(address,address,uint256)": TypedContractEvent<
+      TransferEvent.InputTuple,
+      TransferEvent.OutputTuple,
+      TransferEvent.OutputObject
+    >;
+    Transfer: TypedContractEvent<
+      TransferEvent.InputTuple,
+      TransferEvent.OutputTuple,
+      TransferEvent.OutputObject
+    >;
+
+    "WatchRegistered(uint256,string,string,uint256,uint256,string)": TypedContractEvent<
       WatchRegisteredEvent.InputTuple,
       WatchRegisteredEvent.OutputTuple,
       WatchRegisteredEvent.OutputObject

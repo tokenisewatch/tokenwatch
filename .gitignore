@@ -41,6 +41,12 @@ yarn-error.log*
 /artifacts
 /typechain-types
 
+# watch uploads & metadata (runtime)
+/public/uploads/watches/*
+!/public/uploads/watches/.gitkeep
+/data/watches/*
+!/data/watches/.gitkeep
+
 # vercel
 .vercel
 

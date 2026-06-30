@@ -1,54 +1,173 @@
 "use client";
 
 import { useState } from "react";
+import { readContract, waitForTransactionReceipt } from "wagmi/actions";
+import { decodeEventLog } from "viem";
 import { parseEth, formatEth } from "@/lib/eth";
+import { metadataUriForWatch } from "@/lib/watch-metadata";
 import {
-  useAllWatches,
+  WATCH_VAULT_ABI,
+  WATCH_VAULT_ADDRESS,
+} from "@/lib/contract";
+import { wagmiConfig } from "@/lib/wagmi";
+import {
   useRegisterWatch,
+  useAllWatches,
   useSellWatch,
   useWithdrawPlatformRevenue,
 } from "@/hooks/useWatchVault";
+import { ImageDropzone } from "@/components/ImageDropzone";
 
-export function RegisterWatchForm() {
-  const { registerWatch, isPending, isConfirming, isSuccess, error } =
-    useRegisterWatch();
+export function RegisterWatchForm({ onSuccess }: { onSuccess?: () => void }) {
+  const { registerWatch, isPending, isConfirming, error } = useRegisterWatch();
   const [brand, setBrand] = useState("Rolex");
   const [model, setModel] = useState("Daytona");
   const [year, setYear] = useState("2022");
   const [description, setDescription] = useState("Luxury chronograph watch");
-  const [imageUrl, setImageUrl] = useState(
-    "https://images.unsplash.com/photo-1523170335258-f5ed11844cfe?w=800"
-  );
   const [purchasePrice, setPurchasePrice] = useState("10");
   const [totalShares, setTotalShares] = useState("1000");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const busy = uploading || isPending || isConfirming;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await registerWatch({
-      brand,
-      model,
-      year: BigInt(year),
-      description,
-      imageUrl,
-      purchasePrice: parseEth(purchasePrice),
-      totalShares: BigInt(totalShares),
-    });
+    setFormError(null);
+
+    if (!imageFile) {
+      setFormError("Please drag and drop a watch image.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setStatus("Uploading image...");
+
+      const uploadData = new FormData();
+      uploadData.append("file", imageFile);
+      const uploadRes = await fetch("/api/watches/upload", {
+        method: "POST",
+        body: uploadData,
+      });
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err.error ?? "Image upload failed");
+      }
+      const { imagePath } = (await uploadRes.json()) as { imagePath: string };
+
+      setUploading(false);
+      setStatus("Preparing on-chain registration...");
+
+      const nextWatchId = (await readContract(wagmiConfig, {
+        address: WATCH_VAULT_ADDRESS,
+        abi: WATCH_VAULT_ABI,
+        functionName: "getWatchCount",
+      })) as bigint;
+
+      const metadataUri = metadataUriForWatch(nextWatchId);
+
+      setStatus("Minting watch NFT on Sepolia...");
+
+      const hash = await registerWatch({
+        brand,
+        model,
+        year: BigInt(year),
+        description,
+        imageUrl: imagePath,
+        metadataUri,
+        purchasePrice: parseEth(purchasePrice),
+        totalShares: BigInt(totalShares),
+      });
+
+      setStatus("Waiting for confirmation...");
+
+      let watchId = Number(nextWatchId);
+
+      try {
+        const receipt = await waitForTransactionReceipt(wagmiConfig, {
+          hash,
+          pollingInterval: 2_000,
+          timeout: 180_000,
+        });
+
+        for (const log of receipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: WATCH_VAULT_ABI,
+              data: log.data,
+              topics: log.topics,
+            });
+            if (decoded.eventName === "WatchRegistered") {
+              const args = decoded.args as unknown as { watchId: bigint };
+              watchId = Number(args.watchId);
+              break;
+            }
+          } catch {
+            // not our event
+          }
+        }
+      } catch {
+        // RPC receipt polling can fail even when MetaMask broadcast succeeded
+        const currentCount = (await readContract(wagmiConfig, {
+          address: WATCH_VAULT_ADDRESS,
+          abi: WATCH_VAULT_ABI,
+          functionName: "getWatchCount",
+        })) as bigint;
+
+        if (currentCount > nextWatchId) {
+          watchId = Number(nextWatchId);
+        } else {
+          throw new Error(
+            `Transaction submitted (${hash.slice(0, 10)}…) but confirmation timed out. Check Sepolia Etherscan, then retry metadata save if needed.`
+          );
+        }
+      }
+
+      setStatus("Saving watch metadata locally...");
+
+      await fetch("/api/watches/metadata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          watchId,
+          brand,
+          model,
+          year: Number(year),
+          description,
+          image: imagePath,
+          purchasePriceEth: purchasePrice,
+          totalShares: Number(totalShares),
+          tokenURI: metadataUri,
+          txHash: hash,
+          nftTokenId: watchId,
+          registeredAt: new Date().toISOString(),
+        }),
+      });
+
+      setStatus("Watch registered and NFT minted!");
+      onSuccess?.();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Registration failed");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-xl border border-zinc-800 bg-zinc-900 p-6"
-    >
-      <h3 className="mb-4 text-lg font-medium text-zinc-100">Register Watch</h3>
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-sm text-zinc-400">Brand</span>
           <input
             value={brand}
             onChange={(e) => setBrand(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
+            className="input-field"
             required
+            disabled={busy}
           />
         </label>
         <label className="block">
@@ -56,8 +175,9 @@ export function RegisterWatchForm() {
           <input
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
+            className="input-field"
             required
+            disabled={busy}
           />
         </label>
         <label className="block">
@@ -65,35 +185,47 @@ export function RegisterWatchForm() {
           <input
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
+            className="input-field"
             required
+            disabled={busy}
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm text-zinc-400">Purchase Price (ETH)</span>
+          <span className="mb-1 block text-sm text-zinc-400">
+            Purchase Price (ETH)
+          </span>
           <input
             value={purchasePrice}
             onChange={(e) => setPurchasePrice(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
+            className="input-field"
             required
+            disabled={busy}
           />
         </label>
-        <label className="block sm:col-span-2">
-          <span className="mb-1 block text-sm text-zinc-400">Image URL</span>
-          <input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
-            required
-          />
-        </label>
+
+        <ImageDropzone
+          file={imageFile}
+          preview={imagePreview}
+          disabled={busy}
+          onFileSelect={(file, preview) => {
+            setImageFile(file);
+            setImagePreview(preview);
+            setFormError(null);
+          }}
+          onClear={() => {
+            setImageFile(null);
+            setImagePreview(null);
+          }}
+        />
+
         <label className="block">
           <span className="mb-1 block text-sm text-zinc-400">Total Shares</span>
           <input
             value={totalShares}
             onChange={(e) => setTotalShares(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
+            className="input-field"
             required
+            disabled={busy}
           />
         </label>
         <label className="block sm:col-span-2">
@@ -102,23 +234,31 @@ export function RegisterWatchForm() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none focus:border-amber-600"
+            className="input-field resize-none"
             required
+            disabled={busy}
           />
         </label>
       </div>
+
+      <p className="text-xs text-zinc-500">
+        Registers the watch on Sepolia, mints an ERC-721 NFT to the platform
+        wallet, and saves metadata under{" "}
+        <code className="text-zinc-400">data/watches/</code>.
+      </p>
+
       <button
         type="submit"
-        disabled={isPending || isConfirming}
-        className="mt-4 rounded-lg bg-amber-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-amber-500 disabled:opacity-50"
+        disabled={busy}
+        className="btn-primary px-6 py-2.5 text-sm"
       >
-        {isPending || isConfirming ? "Registering..." : "Register"}
+        {busy ? "Registering..." : "Register & Mint NFT"}
       </button>
-      {isSuccess && (
-        <p className="mt-3 text-sm text-emerald-400">Watch registered!</p>
-      )}
+
+      {status && <p className="text-sm text-orange-300">{status}</p>}
+      {formError && <p className="text-sm text-red-400">{formError}</p>}
       {error && (
-        <p className="mt-3 text-sm text-red-400">{error.message.slice(0, 120)}</p>
+        <p className="text-sm text-red-400">{error.message.slice(0, 120)}</p>
       )}
     </form>
   );

@@ -3,8 +3,9 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-contract WatchVault is Ownable, ReentrancyGuard {
+contract WatchVault is ERC721URIStorage, Ownable, ReentrancyGuard {
     struct Watch {
         uint256 id;
         string brand;
@@ -30,7 +31,8 @@ contract WatchVault is Ownable, ReentrancyGuard {
         string brand,
         string model,
         uint256 purchasePrice,
-        uint256 totalShares
+        uint256 totalShares,
+        string tokenURI
     );
     event SharesPurchased(
         uint256 indexed watchId,
@@ -46,7 +48,10 @@ contract WatchVault is Ownable, ReentrancyGuard {
     );
     event PlatformRevenueWithdrawn(uint256 indexed watchId, uint256 amount);
 
-    constructor() Ownable(msg.sender) {}
+    constructor()
+        ERC721("TokenWatch Asset", "TWATCH")
+        Ownable(msg.sender)
+    {}
 
     function registerWatch(
         string calldata brand,
@@ -54,11 +59,13 @@ contract WatchVault is Ownable, ReentrancyGuard {
         uint256 year,
         string calldata description,
         string calldata imageUrl,
+        string calldata metadataUri,
         uint256 purchasePrice,
         uint256 totalShares
     ) external onlyOwner returns (uint256 watchId) {
         require(purchasePrice > 0, "Invalid purchase price");
         require(totalShares > 0, "Invalid total shares");
+        require(bytes(metadataUri).length > 0, "Metadata URI required");
 
         watchId = nextWatchId++;
         watches[watchId] = Watch({
@@ -75,7 +82,17 @@ contract WatchVault is Ownable, ReentrancyGuard {
             salePrice: 0
         });
 
-        emit WatchRegistered(watchId, brand, model, purchasePrice, totalShares);
+        _safeMint(msg.sender, watchId);
+        _setTokenURI(watchId, metadataUri);
+
+        emit WatchRegistered(
+            watchId,
+            brand,
+            model,
+            purchasePrice,
+            totalShares,
+            metadataUri
+        );
     }
 
     function buyShares(uint256 watchId, uint256 amount) external payable {
@@ -179,5 +196,11 @@ contract WatchVault is Ownable, ReentrancyGuard {
         }
 
         return (watch.salePrice * investorShares) / watch.totalShares;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721URIStorage) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }

@@ -20,6 +20,7 @@ describe("WatchVault", function () {
       2022,
       "Luxury chronograph",
       "https://example.com/daytona.jpg",
+      "https://example.com/metadata/0.json",
       purchasePrice,
       totalShares
     );
@@ -43,6 +44,10 @@ describe("WatchVault", function () {
     expect(watch.sharesSold).to.equal(0);
     expect(watch.sold).to.equal(false);
     expect(await vault.getWatchCount()).to.equal(1);
+    expect(await vault.ownerOf(0)).to.equal(owner.address);
+    expect(await vault.tokenURI(0)).to.equal(
+      "https://example.com/metadata/0.json"
+    );
   });
 
   it("allows investor to buy shares", async function () {

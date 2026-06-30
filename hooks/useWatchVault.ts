@@ -208,6 +208,7 @@ export function useRegisterWatch() {
     year: bigint;
     description: string;
     imageUrl: string;
+    metadataUri: string;
     purchasePrice: bigint;
     totalShares: bigint;
   }) => {
@@ -221,6 +222,7 @@ export function useRegisterWatch() {
         params.year,
         params.description,
         params.imageUrl,
+        params.metadataUri,
         params.purchasePrice,
         params.totalShares,
       ],

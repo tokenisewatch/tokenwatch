@@ -1,6 +1,6 @@
-import { createConfig, http } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import { createConfig } from "wagmi";
 import { injected, metaMask } from "wagmi/connectors";
+import { sepolia, sepoliaTransport } from "@/lib/rpc";
 
 const appUrl =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -17,7 +17,7 @@ export const wagmiConfig = createConfig({
     injected({ target: "metaMask" }),
   ],
   transports: {
-    [sepolia.id]: http(),
+    [sepolia.id]: sepoliaTransport(),
   },
   ssr: false,
 });
